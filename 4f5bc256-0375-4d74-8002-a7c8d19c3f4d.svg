@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" role="img" aria-labelledby="title description">
+  <title id="title">Item photo placeholder</title>
+  <desc id="description">A simple illustration of a backpack and a magnifying glass.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e7efff"/>
+      <stop offset="1" stop-color="#d9f1f3"/>
+    </linearGradient>
+    <linearGradient id="bag" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5578eb"/>
+      <stop offset="1" stop-color="#3152c4"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="440" fill="url(#background)"/>
+  <circle cx="650" cy="85" r="115" fill="#fff" opacity=".34"/>
+  <circle cx="130" cy="385" r="155" fill="#fff" opacity=".26"/>
+  <path d="M334 152c0-38 30-68 68-68s68 30 68 68v24h-34v-24c0-19-15-34-34-34s-34 15-34 34v24h-34z" fill="#233b88" opacity=".9"/>
+  <rect x="295" y="156" width="214" height="207" rx="54" fill="url(#bag)"/>
+  <rect x="328" y="228" width="148" height="105" rx="27" fill="#7894f4"/>
+  <path d="M337 250h130" stroke="#dce6ff" stroke-width="9" stroke-linecap="round" opacity=".85"/>
+  <rect x="378" y="278" width="48" height="40" rx="12" fill="#dce6ff" opacity=".9"/>
+  <circle cx="506" cy="282" r="72" fill="#fff" opacity=".92"/>
+  <circle cx="506" cy="282" r="48" fill="none" stroke="#28a6a0" stroke-width="17"/>
+  <path d="m541 318 39 39" stroke="#28a6a0" stroke-width="19" stroke-linecap="round"/>
+  <path d="M210 186h43M231 165v42" stroke="#fff" stroke-width="9" stroke-linecap="round" opacity=".8"/>
+  <circle cx="601" cy="170" r="10" fill="#28a6a0" opacity=".8"/>
+</svg>
