@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <script type="module" src="script.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/style.css">
+    <script type="module" src="script/script.js"></script>
     <title>FindIt - Campus Lost and Found</title>
 </head>
 <body>
@@ -15,6 +18,7 @@
             <a href="#report">Report an Item</a>
             <a href="#how">How It Works</a>
         </nav>
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Switch to dark mode" aria-pressed="false">Dark mode</button>
     </header>
 
     <main>
@@ -96,12 +100,38 @@
                 <li>If the answer is right, they can contact you and arrange a return.</li>
             </ol>
         </section>
+
+        <dialog class="item-dialog" id="itemDialog" aria-labelledby="itemDialogTitle">
+            <div class="item-dialog-layout">
+                <div class="item-dialog-photo">
+                    <img id="itemDialogImage" alt="">
+                </div>
+                <div class="item-dialog-content">
+                    <button type="button" class="item-dialog-close" id="closeItemDialog" aria-label="Close dialog">&times;</button>
+                    <div class="item-dialog-heading">
+                        <span id="itemDialogType" class="item-type"></span>
+                        <span id="itemDialogDate" class="item-dialog-date"></span>
+                    </div>
+                    <h2 id="itemDialogTitle"></h2>
+                    <p id="itemDialogPlace" class="item-dialog-place"></p>
+                    <p id="itemDialogDetails" class="item-dialog-details"></p>
+                    <section class="item-verification" aria-labelledby="verificationTitle">
+                        <h3 id="verificationTitle">Verify this item</h3>
+                        <p id="itemDialogQuestion"></p>
+                        <label for="itemDialogAnswer">Your answer</label>
+                        <input type="text" id="itemDialogAnswer" maxlength="120" autocomplete="off" placeholder="Enter your answer">
+                        <button type="button" id="verifyItemButton">Check answer</button>
+                        <p id="itemDialogMessage" class="item-dialog-message" role="status" aria-live="polite"></p>
+                        <div id="itemDialogActions" class="item-dialog-actions"></div>
+                    </section>
+                </div>
+            </div>
+        </dialog>
     </main>
 
     <footer>
         <b>FindIt campus lost and found</b>
     </footer>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap">
 </body>
 
 </html>
