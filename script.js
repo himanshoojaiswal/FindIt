@@ -29,7 +29,77 @@ const listingsMessage = document.getElementById("listingsMessage");
 const submitButton = document.getElementById("submitReport");
 const placeLabel = document.getElementById("placeLabel");
 const reportTypeButtons = document.querySelectorAll(".HoriBtnCont button");
+const themeToggle = document.getElementById("themeToggle");
+const defaultItemImage = "asset/item-placeholder.svg";
+const itemDialog = document.getElementById("itemDialog");
+const itemDialogImage = document.getElementById("itemDialogImage");
+const itemDialogType = document.getElementById("itemDialogType");
+const itemDialogDate = document.getElementById("itemDialogDate");
+const itemDialogTitle = document.getElementById("itemDialogTitle");
+const itemDialogPlace = document.getElementById("itemDialogPlace");
+const itemDialogDetails = document.getElementById("itemDialogDetails");
+const itemDialogQuestion = document.getElementById("itemDialogQuestion");
+const itemDialogAnswer = document.getElementById("itemDialogAnswer");
+const verifyItemButton = document.getElementById("verifyItemButton");
+const itemDialogMessage = document.getElementById("itemDialogMessage");
+const itemDialogActions = document.getElementById("itemDialogActions");
 let selectedType = "lost";
+let activeReport = null;
+
+// Restore the chosen appearance and keep it across page visits.
+function setTheme(theme) {
+    const isDark = theme === "dark";
+    document.documentElement.dataset.theme = isDark ? "dark" : "light";
+    themeToggle.textContent = isDark ? "Light mode" : "Dark mode";
+    themeToggle.setAttribute("aria-label", `Switch to ${isDark ? "light" : "dark"} mode`);
+    themeToggle.setAttribute("aria-pressed", String(isDark));
+}
+
+setTheme(localStorage.getItem("findit-theme") || "light");
+themeToggle.addEventListener("click", () => {
+    const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    localStorage.setItem("findit-theme", nextTheme);
+});
+
+function setReportImage(image, source, alt) {
+    image.alt = alt;
+    image.onerror = () => {
+        image.onerror = null;
+        image.src = defaultItemImage;
+    };
+    image.src = typeof source === "string" && source ? source : defaultItemImage;
+}
+
+function openItemDialog(item) {
+    activeReport = item;
+    const isFound = item.type === "found";
+    itemDialogType.textContent = isFound ? "Found" : "Lost";
+    itemDialogType.className = `item-type ${item.type}`;
+    itemDialogDate.textContent = Number.isFinite(item.createdAt)
+        ? new Date(item.createdAt).toLocaleDateString()
+        : "";
+    itemDialogTitle.textContent = item.title;
+    itemDialogPlace.textContent = `${isFound ? "Found at" : "Lost at"}: ${item.place}`;
+    itemDialogDetails.textContent = item.detail;
+    itemDialogQuestion.textContent = item.verificationQuestion;
+    itemDialogAnswer.value = "";
+    itemDialogMessage.textContent = "";
+    itemDialogActions.replaceChildren();
+    verifyItemButton.disabled = false;
+    setReportImage(itemDialogImage, item.image, `Item image: ${item.title}`);
+    itemDialog.showModal();
+}
+
+document.getElementById("closeItemDialog").addEventListener("click", () => itemDialog.close());
+itemDialog.addEventListener("click", (event) => {
+    if (event.target === itemDialog) {
+        itemDialog.close();
+    }
+});
+itemDialog.addEventListener("close", () => {
+    activeReport = null;
+});
 
 // Keep the selected report type and its button label in sync.
 function setReportType(type) {
@@ -125,91 +195,92 @@ function addTextElement(parent, tagName, className, text) {
     return element;
 }
 
-// Build the card shown for one lost or found report.
+// Build a compact, keyboard-accessible summary card for one report.
 function makeItemCard(item) {
     const card = document.createElement("article");
     card.className = "item-card";
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-haspopup", "dialog");
+    card.setAttribute("aria-label", `View full report for ${item.title}`);
 
+    const imageWrap = document.createElement("div");
+    imageWrap.className = "item-image-wrap";
+    const image = document.createElement("img");
+    image.className = "item-image";
+    setReportImage(image, item.image, "");
+    image.loading = "lazy";
+    imageWrap.append(image);
+    card.append(imageWrap);
+
+    const content = document.createElement("div");
+    content.className = "item-card-content";
     const type = item.type === "found" ? "Found" : "Lost";
-    addTextElement(card, "span", `item-type ${item.type === "found" ? "found" : "lost"}`, type);
-    addTextElement(card, "h3", "item-title", item.title);
+    const heading = document.createElement("div");
+    heading.className = "item-card-heading";
+    addTextElement(heading, "h3", "item-title", item.title);
+    addTextElement(heading, "span", `item-type ${item.type === "found" ? "found" : "lost"}`, type);
+    content.append(heading);
 
-    if (item.image) {
-        const image = document.createElement("img");
-        image.className = "item-image";
-        image.src = item.image;
-        image.alt = `Photo of ${item.title}`;
-        image.loading = "lazy";
-        card.append(image);
-    }
-
-    addTextElement(card, "p", "item-detail", item.detail);
-    addTextElement(card, "p", "item-place", `${item.type === "found" ? "Found at" : "Lost at"}: ${item.place}`);
+    addTextElement(content, "p", "item-detail", item.detail);
+    addTextElement(content, "p", "item-place", `${item.type === "found" ? "Found at" : "Lost at"}: ${item.place}`);
     if (Number.isFinite(item.createdAt)) {
-        addTextElement(card, "p", "item-date", new Date(item.createdAt).toLocaleDateString());
+        addTextElement(content, "p", "item-date", new Date(item.createdAt).toLocaleDateString());
     }
+    addTextElement(content, "span", "item-view-link", "View full details");
 
-    const question = document.createElement("p");
-    question.className = "verification-question";
-    const questionLabel = document.createElement("strong");
-    questionLabel.textContent = "Verification question: ";
-    question.append(questionLabel, document.createTextNode(item.verificationQuestion));
-    card.append(question);
-
-    const answerLabel = document.createElement("label");
-    answerLabel.className = "claim-label";
-    answerLabel.textContent = "Your answer";
-    const answerInput = document.createElement("input");
-    answerInput.type = "text";
-    answerInput.maxLength = 120;
-    answerInput.autocomplete = "off";
-    answerLabel.append(answerInput);
-    card.append(answerLabel);
-
-    const contactControls = document.createElement("div");
-    contactControls.className = "claim-controls";
-    const checkButton = document.createElement("button");
-    checkButton.type = "button";
-    checkButton.textContent = "Check answer to contact";
-    const result = document.createElement("span");
-    result.className = "claim-result";
-    result.setAttribute("aria-live", "polite");
-    contactControls.append(checkButton, result);
-    card.append(contactControls);
-
-    checkButton.addEventListener("click", async () => {
-        result.textContent = "";
-        if (!answerInput.value.trim()) {
-            result.textContent = "Enter an answer first.";
-            return;
-        }
-        checkButton.disabled = true;
-        try {
-            const answerHash = await hashAnswer(item.verificationSalt, answerInput.value);
-            if (answerHash !== item.verificationHash) {
-                result.textContent = "That answer does not match. Check with the item owner.";
-                return;
-            }
-            if (typeof item.contactEmail !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item.contactEmail)) {
-                result.textContent = "This report does not have a valid contact email.";
-                return;
-            }
-
-            const contactLink = document.createElement("a");
-            contactLink.className = "contact-link";
-            contactLink.href = `mailto:${item.contactEmail}?subject=${encodeURIComponent(`FindIt: ${item.title}`)}&body=${encodeURIComponent(`Hello, I think I can identify your ${type.toLowerCase()} item. I answered the verification question correctly. Please contact me so we can arrange its return.`)}`;
-            contactLink.textContent = "Email the reporter";
-            result.replaceChildren(contactLink);
-        } catch (error) {
-            console.error("Could not check the verification answer:", error);
-            result.textContent = "Could not check the answer. Please try again.";
-        } finally {
-            checkButton.disabled = false;
+    card.append(content);
+    card.addEventListener("click", () => openItemDialog(item));
+    card.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openItemDialog(item);
         }
     });
-
     return card;
 }
+
+verifyItemButton.addEventListener("click", async () => {
+    if (!activeReport) {
+        return;
+    }
+    const report = activeReport;
+    if (!itemDialogAnswer.value.trim()) {
+        itemDialogMessage.textContent = "Enter an answer before checking it.";
+        return;
+    }
+
+    verifyItemButton.disabled = true;
+    itemDialogMessage.textContent = "";
+    itemDialogActions.replaceChildren();
+    try {
+        const answerHash = await hashAnswer(report.verificationSalt, itemDialogAnswer.value);
+        if (activeReport !== report) {
+            return;
+        }
+        if (answerHash !== report.verificationHash) {
+            itemDialogMessage.textContent = "That answer doesn't match. Check the item details and try again.";
+            return;
+        }
+        if (typeof report.contactEmail !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(report.contactEmail)) {
+            itemDialogMessage.textContent = "This report does not have a valid contact email.";
+            return;
+        }
+
+        const itemType = report.type === "found" ? "found" : "lost";
+        const contactLink = document.createElement("a");
+        contactLink.className = "contact-link";
+        contactLink.href = `mailto:${report.contactEmail}?subject=${encodeURIComponent(`FindIt: ${report.title}`)}&body=${encodeURIComponent(`Hello, I think I can identify your ${itemType} item. I answered the verification question correctly. Please contact me so we can arrange its return.`)}`;
+        contactLink.textContent = "Email the reporter";
+        itemDialogMessage.textContent = "Your answer is correct. You can now contact the reporter.";
+        itemDialogActions.replaceChildren(contactLink);
+    } catch (error) {
+        console.error("Could not check the verification answer:", error);
+        itemDialogMessage.textContent = "Could not check the answer. Please try again.";
+    } finally {
+        verifyItemButton.disabled = false;
+    }
+});
 
 // Validate database records, update the totals, and show the report cards.
 function renderItems(value) {
